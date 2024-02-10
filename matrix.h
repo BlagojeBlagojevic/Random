@@ -95,7 +95,7 @@ void matrix_rand(Mat dest, float high,float low)
 
 void matrix_print(Mat m, const char *name)
 {
-	printf("______________________________________________________________________________\n");
+	printf("\n\n______________________________________________________________________________\n");
 	printf("%s",name);
 	printf(" = \n[\n");
 	for(size_t y = 0;y < m.rows; y++){
