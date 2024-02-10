@@ -37,7 +37,7 @@ void matrix_dot(Mat dest, Mat a, Mat b);
 void matrix_sum(Mat dest, Mat a);
 void matrix_rand(Mat dest,float low, float high);
 void matrix_print(Mat m,const char *name);
-#define MAT_PRINT(m) matrix_print(m, #m)
+#define MATRIX_PRINT(m) matrix_print(m, #m)
 
 #endif  //MATRIX_H
 
