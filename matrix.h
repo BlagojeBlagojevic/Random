@@ -17,11 +17,15 @@
 
 #define MATRIX_SHIFT(m,y,x) (m).elem[(y)*(m).cols + (x)]
 
+#ifndef TYPE 
+#define TYPE float
+#endif
+
 typedef struct {
 	size_t rows;    //NUM OF   ROWS
 	size_t cols;    //NUM OF   COLS
 	size_t stride;  //WHER TO  SPLIT
-	float *elem;    //ELEMETS  IN
+	TYPE *elem;    //ELEMETS  IN
 	} Mat;
 
 //UTILITY FUNCTION
@@ -48,7 +52,7 @@ Mat matrix_alloc(size_t rows, size_t cols)
 	Mat m;
 	m.cols = cols;
 	m.rows = rows; 
-	m.elem = (float*)MATRIX_CALLOC(rows*cols,sizeof(*m.elem));    //(*M.elem) derefrence Changing type of element
+	m.elem = (TYPE *)MATRIX_CALLOC(rows*cols,sizeof(*m.elem));    //(*M.elem) derefrence Changing type of element
 	MATRIX_ASSERT(m.elem!=NULL);
 	return m;
 }
@@ -84,7 +88,7 @@ void matrix_rand(Mat dest, float high,float low)
 {
 	for(size_t y = 0;y < dest.rows; y++){
 		for(size_t x = 0;x < dest.cols; x++){
-          MATRIX_SHIFT(dest,y,x) = rand_float()*(high - low) + low;   //IN RANGE
+          MATRIX_SHIFT(dest,y,x) = (TYPE)((rand_float()*(high - low)) + low);   //IN RANGE
 		}
 }
 }
@@ -96,9 +100,9 @@ void matrix_print(Mat m, const char *name)
 	printf(" = \n[\n");
 	for(size_t y = 0;y < m.rows; y++){
 		for(size_t x = 0;x < m.cols; x++){
-         printf(" %.2f ", MATRIX_SHIFT(m,y,x));
+		   printf(" %.2f ", (float)MATRIX_SHIFT(m,y,x));
 		}
-		printf("\n");
+		printf("\n\n");
 	}
 	printf("]\n");
 	printf("______________________________________________________________________________\n");
