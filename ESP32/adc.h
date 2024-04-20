@@ -17,4 +17,4 @@ ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
 
 
 // adc_oneshot_read(adc1_handle, ADC_CHANNEL_0, &raw); read value to raw as raw 
-
+// Conver   LOW + (MAX_VALUE * raw / (2^numBits - 1) )
