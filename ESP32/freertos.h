@@ -4,46 +4,134 @@
 
 2 INTERUPT PERIPHERAL
 
-xTaskCreate()
-xTaskCreateStatic()
+task state -> Running, Ready, Blocked, or Suspended.
 
+
+#include "freertos/task.h"
 xTaskCreatePinToCore()   //Use this two
 xTaskCreateStaticPinToCore()
+xTaskCreate()
+xTaskCreateStatic()
+vTaskDelete()
+xTaskGetStaticBuffers()
+vTaskDelay()
+vTaskDelayUntil()
+xTaskDelayUntil()
+uxTaskPriorityGet()
+uxTaskPriorityGetFromISR()
+uxTaskBasePriorityGet()
+uxTaskBasePriorityGetFromISR()
+vTaskPrioritySet()
+vTaskSuspend()
+vTaskResume()
+xTaskResumeFromISR()
+xTaskAbortDelay()
+uxTaskGetSystemState()
+vTaskGetInfo()
+xTaskGetCurrentTaskHandle()
+xTaskGetIdleTaskHandle()
+uxTaskGetStackHighWaterMark()
+eTaskGetState()
+pcTaskGetName()
+xTaskGetHandle()
+xTaskGetTickCount()
+xTaskGetTickCountFromISR()
+xTaskGetSchedulerState()
+uxTaskGetNumberOfTasks()
+vTaskList()
+vTaskListTasks()
+vTaskStartTrace()
+ulTaskEndTrace()
+vTaskGetRunTimeStats()
+vTaskGetRunTimeStatistics()
+vTaskGetIdleRunTimeCounter()
+ulTaskGetRunTimeCounter()
+ulTaskGetRunTimePercent()
+ulTaskGetIdleRunTimeCounter()
+ulTaskGetIdleRunTimePercent()
+vTaskSetApplicationTaskTag()
+xTaskGetApplicationTaskTag()
+xTaskCallApplicationTaskHook()
+pvTaskGetThreadLocalStoragePointer()
+vTaskSetThreadLocalStoragePointer()
+vTaskSetTimeOutState()
+xTaskCheckForTimeOut()
 
-task state -> Running, Ready, Blocked, or Suspended.
-vTaskeDelete()
-Scheduler -> timer for control of time 
-Incrementing the scheduler's tick count
+#include "freertos/timer.h"
+xTimerCreate()
+xTimerCreateStatic()
+xTimerIsTimerActive()
+pvTimerGetTimerID()
+pcTimerGetName()
+vTimerSetReloadMode()
+xTimerStart()
+xTimerStop()
+xTimerChangePeriod()
+xTimerDelete()
+xTimerReset()
+xTimerStartFromISR()
+xTimerStopFromISR()
+xTimerChangePeriodFromISR()
+xTimerResetFromISR()
+pvTimerGetTimerID()
+vTimerSetTimerID()
+xTimerGetTimerDaemonTaskHandle()
+xTimerPendFunctionCall()
+xTimerPendFunctionCallFromISR()
+pcTimerGetName()
+xTimerGetPeriod()
+xTimerGetExpiryTime()
+xTimerGetReloadMode()
 
-Unblocking any blocked tasks that have timed out
 
-Checking if time slicing is required, i.e., triggering a context switch
 
-Executing the application tick hook  
-Idle task -> controls task priority alocation and similar
+#include "freertos/queue.h"
+xQueueCreate()
+xQueueCreateStatic()
+vQueueDelete()
+xQueueSend()
+xQueueSendFromISR()
+xQueueSendToBack()
+xQueueSendToBackFromISR()
+xQueueSendToFront()
+xQueueSendToFrontFromISR()
+xQueueReceive()
+xQueueReceiveFromISR()
+uxQueueMessagesWaiting()
+uxQueueMessagesWaitingFromISR()
+uxQueueSpacesAvailable()
+xQueueReset()
+xQueuePeek()
+xQueuePeekFromISR()
+vQueueAddToRegistry()
+pcQueueGetName()
+vQueueUnregisterQueue()
+xQueueIsQueueEmptyFromISR()
+xQueueIsQueueFullFromISR()
+xQueueOverwrite()
+xQueueOverwriteFromISR()
+xQueueGetStaticBuffers()
 
-vTaskSuspend() -> for only one core
-vTaskResume()  -> same
-taskDISABLE_INTERRUPTS
-taskENABLE_INTERRUPTS
 
-taskENTER_CRITICAL() enters a critical section by disabling interrupts
 
-taskEXIT_CRITICAL() exits a critical section by reenabling interrupts
-
-taskENTER_CRITICAL_FROM_ISR() enters a critical section from an ISR by disabling interrupt nesting
-
-taskEXIT_CRITICAL_FROM_ISR() exits a critical section from an ISR by reenabling interrupt nesting
-
-However, in an SMP system, merely disabling interrupts does not constitute a critical section as the presence of other cores means that a shared resource can still be concurrently accessed. Therefore, critical sections in IDF FreeRTOS are implemented using spinlocks. To accommodate the spinlocks, 
-the IDF FreeRTOS critical section APIs contain an additional spinlock parameter as shown below:
-Spinlocks are of portMUX_TYPE (not to be confused to FreeRTOS mutexes)
-
-taskENTER_CRITICAL(&spinlock) enters a critical from a task context
-
-taskEXIT_CRITICAL(&spinlock) exits a critical section from a task context
-
-taskENTER_CRITICAL_ISR(&spinlock) enters a critical section from an interrupt context
-
-taskEXIT_CRITICAL_ISR(&spinlock) exits a critical section from an interrupt context
+#include "freertos/semphr.h"
+xSemaphoreCreateBinary()
+xSemaphoreCreateBinaryStatic()
+vSemaphoreCreateBinary [use xSemaphoreCreateBinary() for new designs]
+xSemaphoreCreateCounting()
+xSemaphoreCreateCountingStatic()
+xSemaphoreCreateMutex()
+xSemaphoreCreateMutexStatic()
+xSemaphoreCreateRecursiveMutex()
+xSemaphoreCreateRecursiveMutexStatic()
+vSemaphoreDelete()
+xSemaphoreGetMutexHolder()
+xSemaphoreTake()
+xSemaphoreTakeFromISR()
+xSemaphoreTakeRecursive()
+xSemaphoreGive()
+xSemaphoreGiveRecursive()
+xSemaphoreGiveFromISR()
+uxSemaphoreGetCount()
+xSemaphoreGetStaticBuffer()
 
