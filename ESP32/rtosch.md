@@ -10,7 +10,7 @@ FreeRTOS Cheat Sheet
    - Use `xSemaphoreTake()` to acquire the semaphore.
    - Use `xSemaphoreGive()` to release the semaphore.
 
-3. Task Delay:
+3 . Task Delay:
    - Use `vTaskDelay()` to delay a task for a specific time period.
    - Example: `vTaskDelay(pdMS_TO_TICKS(1000));` (delays the task for 1 second)
 
