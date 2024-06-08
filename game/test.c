@@ -1,10 +1,10 @@
 #include "utils.h"
+#include "sprite.h"
 
+Sprite player;
+Sprite ground;
 
-
-
-
-i32 mapHeight  = 16;
+i32 mapHeight  = 18;
 i32 mapWidth   = 64;
 const i32 tileWidth  = 40;
 const i32 tileHeight = 40;
@@ -16,12 +16,14 @@ f64 cameraY = 0.0f;
 f64 ofsetX;
 f64 ofsetY;
 
-f64 playerPosX = 0 ;
-f64 playerPosY = 0 ;
+f64 playerPosX = 0.0f;
+f64 playerPosY = 0.0f;
 
 f64 playerVelX = 0.0f;
 f64 playerVelY = 0.0f;
 u64 frameStartTime;
+
+u8 isWPressed = FALSE;
 
 static inline void calculateOfset() {
 	ofsetX = cameraX -  (f64)visibleTilesX / 2.0f ;
@@ -31,23 +33,25 @@ static inline void calculateOfset() {
 
 
 
-char map[] =  "................................................................"
+char map[] =  ".##############################################################."
+              ".##############################################################."
+              ".###############################################################"         
+              ".##############################################################."
               "................................................................"
               "................................................................"
-              "................................................................"
-              "................................................................"
-              ".................#..#..........................................."
-              "...............###..###........................................."
+							".................#..#..........................................."
+              "..C............###..###..............########################..."
               "...............###..###..............########################..."
-              "..............####..####.............########################..."
+              ".....CCCCCC...####..####.............########################..."
               "###################################............................."
               "###################################...........................##"
-              ".................................##########..........###########"
-              "..........................................##........######......"
-              "...........................................#....#...#####......."
-              "..........................................###...#..######......."
-              "..........................................#########............."
-              ;
+              "###########################################..........###########"
+              "................................############........############"
+              "................................###########C....#...###########."
+              ".........................................####...#..######......."
+              ".........................................################......."
+              ".........................................################......."
+							;
 
 
 
@@ -104,8 +108,8 @@ void initGame() {
 		ERROR_BREAK("Renderer not init!!!\n");
 		}
 	isClose = FALSE;
-
-
+	player = initSprite("asset/player/ball.png",PLAYER,FALSE,0,0,tileWidth, tileHeight,NULL);
+	ground = initSprite("asset/map/2.png"   ,PLAYER,FALSE,0,0,tileWidth, tileHeight,NULL);
 	}
 
 static inline void tileRenderer() {
@@ -129,8 +133,11 @@ static inline void tileRenderer() {
 				case '#': {
 						r.x = (i32)(x)*tileWidth  - displasmentX;
 						r.y = (i32)(y)*tileHeight - displasmentY;
-						SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
-						SDL_RenderFillRect(renderer, &r);
+						//SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
+						//SDL_RenderFillRect(renderer, &r);
+						ground.bound.x = r.x;
+						ground.bound.y = r.y;
+						renderSprite(ground);
 						break;
 						}
 
@@ -142,6 +149,16 @@ static inline void tileRenderer() {
 
 						break;
 						}
+						
+					case 'C': {
+						r.x = x*tileWidth - displasmentX ;
+						r.y = y*tileHeight - displasmentY;
+						SDL_SetRenderDrawColor(renderer, 0, 255, 255, 0);
+						SDL_RenderFillRect(renderer, &r);
+
+						break;
+						}		
+					
 				default:
 					break;
 				}
@@ -152,35 +169,46 @@ static inline void tileRenderer() {
 		SDL_SetRenderDrawColor(renderer, 0,255,0,0);
 		r.x = playerPosX*tileWidth - ofsetX*tileWidth;
 		r.y = playerPosY*tileHeight - ofsetY*tileHeight;
-		SDL_RenderFillRect(renderer, &r);
+		//SDL_RenderFillRect(renderer, &r);
+		player.bound.x  = r.x;
+		player.bound.y  = r.y;
+		renderSprite(player);
 		}
 
 
 	}
 
 
+
+u8 onGround = TRUE;
 static inline void inputHandling() {
 	const u8* stateOfKeyBoard = SDL_GetKeyboardState(NULL);
 
-	f64 displasmentX = (ofsetX - (i32)ofsetX) * tileWidth;
-	f64 displasmentY = (ofsetY - (i32)ofsetY) * tileHeight;
+	//f64 displasmentX = (ofsetX - (i32)ofsetX) * tileWidth;
+	//f64 displasmentY = (ofsetY - (i32)ofsetY) * tileHeight;
 
 	playerVelX = 0.0f;
 	playerVelY = 0.0f;
 	const f64 a = 0.1 + rand() / RAND_MAX*0.1f;
-	u8 onGround = TRUE;
+	
 
-	if(stateOfKeyBoard[SDL_SCANCODE_W]) {
-		playerVelY = -2.0f * a ;
+	if(stateOfKeyBoard[SDL_SCANCODE_W] && !isWPressed) {
+		playerVelY = -5.0f * a;
+		isWPressed = TRUE;
+	
 		}
 	if(stateOfKeyBoard[SDL_SCANCODE_S]) {
 		playerVelY = a;
+		isWPressed = FALSE;
+		
 		}
 	if(stateOfKeyBoard[SDL_SCANCODE_A]) {
 		playerVelX = -a;
+		isWPressed = FALSE;
 		}
 	if(stateOfKeyBoard[SDL_SCANCODE_D]) {
 		playerVelX = a;
+		isWPressed = FALSE;
 		}
 
 
@@ -189,13 +217,17 @@ static inline void inputHandling() {
 	f64 x = changeX + playerPosX;
 	f64 y = changeY + playerPosY;
 	//LOG("x = %f y = %f ax = %f ay = %f\n", playerPosX, playerPosY, playerVelX, playerVelY);
-
+	char tile = getTile(x, y) ;
+	if(tile == 'C'){
+		setTile(x, y, '.');
+	}
 
 	if(playerVelY > 0.0f) {
 		char tile = getTile(x, y + 0.9f) & getTile(x + 1.0f, y + 0.9f);
 
-		if(tile != '.') {
+		if(tile != '.' && tile != 'C') {
 			changeY = 0;
+			
 			}
 	
 
@@ -203,8 +235,9 @@ static inline void inputHandling() {
 	else {
 		char tile = getTile(x, y) & getTile(x + 0.9f, y);
 
-		if(tile != '.') {
+		if(tile != '.'  && tile != 'C') {
 			changeY = 0;
+	
 			}
 	
 		}
@@ -212,7 +245,7 @@ static inline void inputHandling() {
 	if(playerVelX <= 0.0f) {
 		char tile = getTile(x, y) & getTile(x, y + 0.7f);
 
-		if(tile != '.') {
+		if(tile != '.' && tile != 'C') {
 			changeX = 0;
 			}
 
@@ -222,7 +255,7 @@ static inline void inputHandling() {
 	else {
 		char tile = getTile(x + 1.1f, y) & getTile(x + 1.1f, y + 0.7f);
 
-		if(tile != '.') {
+		if(tile != '.' && tile != 'C') {
 			changeX = 0;
 			}
 
@@ -232,9 +265,9 @@ static inline void inputHandling() {
 
 	playerPosY  += changeY;
 	playerPosX  += changeX;
-	char tile = getTile(x, y + 0.9f);
+	tile = getTile(x, y + 0.9f);
 	if(tile == '.') {
-		playerPosY += a;
+		playerPosY += 0.981f*a;
 		}
 
 
@@ -259,7 +292,7 @@ static inline void eventHandling(void) {
 	}
 
 
-#define FPS (u64)60
+#define FPS (u64)120
 #define TARGETTIME (u64)(1000 / FPS)
 
 u64 passedTime;
@@ -298,7 +331,7 @@ int main() {
 	//LOG("%", map);
 	//exit(-1);
 	initGame();
-	system("Pause");
+	//system("Pause");
 	loop();
 	printf("Nesto");
 	return 0;
