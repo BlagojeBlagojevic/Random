@@ -1,39 +1,4 @@
 
-The given example code targets RIMS, a microcontroller simulator with its own interface to a timer peripheral, and simple I/O ports A and B. To use an AVR microcontroller, the following functions must be replaced with functions that target the AVR you are using:
-
-    TimerOn(): Turns the timer peripheral on.
-    TimerSet(int): Set the number of milliseconds between timer interrupts
-    TimerISR(int): The timer interrupt handler.
-
-The following sections provide code for implementing RIOS on an AVR ATMega324P.
-TimerOn():
-
-TimerOn(){ 
-   TCCR1B = (1<<WGM12)|(1<<CS12); //Clear timer on compare. Prescaler = 256
-   TIMSK1 = (1<<OCIE1A); //Enables compare match interrupt 
-   SREG |= 0x80; //Enable global interrupts 
-}
-
-TimerSet()
-
-void TimerSet(int milliseconds){ 
-TCNT1 = 0; 
-OCR1A = milliseconds*31.25; // 8 MHz AVR, prescalar == 256 -> 31.25 ticks per ms
-}
-
-TimerISR()
-AVRs require specific, predefined function names when calling an ISR. Therefore we can simply place the TimerISR function into the appropriate interrupt function, which in this case is the timer 1 compare interrupt. To save a few cycles, the RIOS kernel code can be inlined into the AVR-specific interrupt function instead.
-
-void TimerISR(){ 
-// RIOS scheduler code 
-} 
-ISR(TIMER1_COMPA_vect) { // Timer compare match interrupt service routine
-TimerISR(); 
-}
-
-Complete AVR example.
-The following is complete template code for the preemptive version of RIOS implemented on an AVR. Simply replace the 3 empty task functions with your own code.
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <math.h>
