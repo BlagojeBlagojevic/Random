@@ -138,13 +138,15 @@ void vTaskDelete( TaskHandle_t xTaskToSuspend );
 For more info on free RTOS https://www.freertos.org/
 
 ## GPIO 
-In ESP32 near all pin could be changed to be what is desired(UART, I2C, I2S ,ADC).
+In ESP32 near all pin could be changed to be what is desired(UART, I2C, I2S, ADC).
 Inside ESP32 ther is IOMUX and GPIOMUX matrix witch job is to reroute pins internaly (like one giant global 
 multiplexer).
 https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html
 
 We use alredy prebuild driver.
 `#include "driver/gpio.h"`
+gpio_num_t is like GPIO_NUM_"NUMBER OF PIN".
+
 Init of types of pins(INPUT, OUTPUT) is done using function 
 `gpio_set_direction()`.
 
@@ -152,4 +154,105 @@ Init of types of pins(INPUT, OUTPUT) is done using function
 esp_err_t gpio_set_direction(gpio_num_t gpio_num, gpio_mode_t mode);
 ```
 
+Wrap functon in ESP_ERROR_CHECK() for checking is seting of pin is posible (Probobly problem be RTC pins or if we set i2c, adc, ...).
+gpio_mode_t `GPIO_MOD_OUTPUT, GPIO_MOD_INPUT` for seting direction of a pin.
 
+If pin direction is set to be input we coulde get value of a pin.
+`uint8_t gpio_get_level(gpio_num_t gpio_num)` 1 for HIGH 0 for LOW.
+Probobly nead to `#define HIGH 1`, `#define LOW 0`.
+
+If pin direction is set to be output then we coude set value on pin.
+`esp_err_t gpio_set_level(gpio_num_t num, uint8_t value)`.
+
+If we want to use interupts on GPIO pins we nead to set interrupt, and then to 
+register callback(Function witch will run when interrupt is trigerd) ` gpio_set_intr_type()`.
+
+```c
+esp_err_t gpio_set_intr_type(gpio_num_t gpio_num, gpio_int_type_t intr_type)
+```
+gpio_int_type:
+1.  GPIO_INTR_POSEDGE
+2.  GPIO_INTR_NEGEDGE
+3.  GPIO_INTR_ANYEDGE
+4.  GPIO_INTR_LOW_LEVEL
+5.  GPIO_INTR_HIGH_LEVEL
+
+
+
+`gpio_isr_register()` is used to setup callback when interupt is happend.
+
+```c
+esp_err_t gpio_isr_register(void (*fn)(void*), void *arg, int intr_alloc_flags, gpio_isr_handle_t *handle)
+```
+`void (*fn)(void*)` is a shape of our function(just provide name of isr and isr must not return and except void* params).
+
+Last step is to enable the interrupt `gpio_intr_enable()`.
+```c
+esp_err_t gpio_intr_enable(gpio_num_t gpio_num)
+```
+All pins have pull up and pull down resistors.
+
+## WIFI 
+
+This is the headers for witch ESP32 wifi app depenth on
+
+```c
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
+#include "freertos/event_groups.h"
+#include "esp_wifi.h"
+#include "esp_log.h"
+#include "nvs_flash.h"
+#include "esp_netif.h"
+```
+Main recomendation is to use EXAMPLE witch is provided in examples.
+Lets write ESP32 wifi in sta mode (MOD IN WITCH ESP32 ACTS LIKE A CLIENT).
+
+Wifi initialisation has 4 main phases:
+
+1. `Wi-Fi/LwIP Init Phase`
+2. `Wi-Fi Configuration Phase`
+3. `Wi-Fi Start phase`
+4. `Wi-Fi Conect phase`
+
+### First phase
+First phase consist of:
+
+1. The main task calls `esp_netif_init()` to create an LwIP core task and initialize LwIP-related work.
+
+2. The main task calls `esp_event_loop_create()` to create a system Event task and initialize an application event's callback function. In the scenario above, the application event's callback function does nothing but relaying the event to the application task.
+
+3. The main task calls `esp_netif_create_default_wifi_ap()` or `esp_netif_create_default_wifi_sta()` to create default network interface instance binding station or AP with TCP/IP stack.
+
+4. The main task calls `esp_wifi_init()` to create the Wi-Fi driver task and initialize the Wi-Fi driver.
+
+5. The main task calls OS API to create the application task.
+
+```c
+// 1 - Wi-Fi/LwIP Init Phase
+	ESP_ERROR_CHECK(esp_netif_init()); //TCP
+	ESP_ERROR_CHECK(esp_event_loop_create_default());//event loop	
+	ESP_ERROR_CHECK(esp_netif_create_default_wifi_sta());//WIFI setup as station
+	ESP_ERROR_CHECK(wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT()); //default config
+	ESP_ERROR_CHECK(esp_wifi_init(&wifi_config));	
+```
+
+If nvs flash is enabled  `nvs_flash_init()` 
+all wifi_configs are saved in flash memory and on next setup will be loaded from it. 
+
+### Second phase 
+
+Second phase consist of :
+
+1. Adding event loops for wifi and loading wifi credential(Same as if flash is enabled).
+
+ ```c
+  esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL); //ADD EVENT HANDLER
+	 esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);
+ ```
+ Code above add event loops for wifi events and ip events.
+ WIFI_EVENT_STA_START -> event for start of wifi as station.
+ WIFI_EVENT_STA_CONNECTED -> event for handling if wifi is conected
+ WIFI_EVENT_STA_DISCONNECTED -> event for handling if wifi is disconected
