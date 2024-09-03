@@ -255,11 +255,17 @@ Second phase consist of :
  Code above add event loops for wifi events and ip events .
  
  1. Main wifi events:
-   1. `WIFI_EVENT_STA_START` -> event for start of wifi as station.
-   2. `WIFI_EVENT_STA_CONNECTED` -> event for handling if wifi is conected
-   3. `WIFI_EVENT_STA_DISCONNECTED` -> event for handling if wifi is disconected
- 2. Main ip event:
-    1. `IP_EVENT_STA_GOT_IP`  -> event for handling if we got a ip addres.
+   
+     1.1 `WIFI_EVENT_STA_START` -> event for start of wifi as station.
+
+     1.2 `WIFI_EVENT_STA_CONNECTED` -> event for handling if wifi is conected
+
+     1.3 `WIFI_EVENT_STA_DISCONNECTED` -> event for handling if wifi is disconected
+  
+  
+  3. Main ip event:
+
+     2.1 `IP_EVENT_STA_GOT_IP`  -> event for handling if we got a ip addres.
    
  For all events consult https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/wifi.html
  or provided example . 
