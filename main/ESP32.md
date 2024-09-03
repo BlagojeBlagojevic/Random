@@ -565,7 +565,7 @@ First phase consist of:
 // 1 - Wi-Fi/LwIP Init Phase
 	ESP_ERROR_CHECK(esp_netif_init()); //TCP
 	ESP_ERROR_CHECK(esp_event_loop_create_default());//event loop	
-	ESP_ERROR_CHECK(esp_netif_create_default_wifi_sta());//WIFI setup as station
+	esp_netif_create_default_wifi_sta();//WIFI setup as station
 	ESP_ERROR_CHECK(wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT()); //default config
 	ESP_ERROR_CHECK(esp_wifi_init(&wifi_config));	
 ```
@@ -581,7 +581,7 @@ Second phase consist of :
 
  ```c
   esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL); //ADD EVENT HANDLER
-	 esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);
+  esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);
  ```
  Code above add event loops for wifi events and ip events .
  
@@ -624,8 +624,19 @@ static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_b
     }
 }
 
+ 
 ```
+Then we nead to define config for wifi
 
+```c
+wifi_config_t wifi_configuration = {
+        .sta = {
+            .ssid = "",
+            .password = ""}};
+
+```
+Set mode `esp_wifi_set_mode(WIFI_MODE_STA);`
+and then call config `esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);`
 ### Third phase
 
 Just consist of a starting wifi. `esp_wifi_start()`
@@ -652,6 +663,7 @@ void wifi_init(){
         .sta = {
             .ssid = "",
             .password = ""}};
+    esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);
     // 3 - Wi-Fi Start Phase
     esp_wifi_start();
