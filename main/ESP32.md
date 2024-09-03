@@ -308,7 +308,7 @@ EXAMPLE OF WIFI INITIALISATION IS:
 
 ```c
 //WIFI EVENT HANDLER MUST BE DEFINED
-wifi_init(){
+void wifi_init(){
     esp_netif_init();                    // TCP/IP initiation 					
     esp_event_loop_create_default();     // event loop 			                
     esp_netif_create_default_wifi_sta(); // WiFi station 	                    
