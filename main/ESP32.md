@@ -617,6 +617,8 @@ static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_b
         printf("WiFi lost connection ... \n");
         break;
     case IP_EVENT_STA_GOT_IP:
+	ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+        printf("STA IP: " IPSTR, IP2STR(&event->ip_info.ip));
         printf("WiFi got IP ... \n\n");
         break;
     default:
