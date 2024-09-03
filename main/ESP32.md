@@ -236,7 +236,7 @@ First phase consist of:
 	ESP_ERROR_CHECK(esp_netif_init()); //TCP
 	ESP_ERROR_CHECK(esp_event_loop_create_default());//event loop	
 	esp_netif_create_default_wifi_sta();//WIFI setup as station
-	ESP_ERROR_CHECK(wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT()); //default config
+	wifi_init_config_t wifi_config = WIFI_INIT_CONFIG_DEFAULT(); //default config
 	ESP_ERROR_CHECK(esp_wifi_init(&wifi_config));	
 ```
 
