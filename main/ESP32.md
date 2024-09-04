@@ -192,6 +192,105 @@ Last step is to enable the interrupt `gpio_intr_enable()`.
 esp_err_t gpio_intr_enable(gpio_num_t gpio_num)
 ```
 All pins have pull up and pull down resistors.
+```c
+
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+#include "esp_log.h"
+//#include "led_strip.h"
+#include "sdkconfig.h"
+#include<string.h>
+#define DELAY(x) vTaskDelay((x) / portTICK_PERIOD_MS);
+static const gpio_num_t led_pins[] = {
+    GPIO_NUM_10,
+    GPIO_NUM_11,
+    GPIO_NUM_25,
+    GPIO_NUM_26,
+
+};
+static const gpio_num_t input_pins[] = {
+    GPIO_NUM_15,
+    GPIO_NUM_14,
+};
+
+#define NUM_OF_LED 4
+#define DELAY_MS 1000
+
+
+volatile IRAM_ATTR uint16_t delayTime = 1000;
+void ledChangeInterupt(void){
+IRAM_ATTR static uint8_t i;
+   while(1){
+    for (i = 0; i < NUM_OF_LED; i++)
+    {
+        gpio_set_level(led_pins[i], 1);
+    }
+    ESP_LOGI("nesto","HIGH\n");
+    DELAY(delayTime);
+    for (i = 0; i < NUM_OF_LED; i++)
+    {
+        gpio_set_level(led_pins[i], 0);
+    }
+    ESP_LOGI("nesto","LOW\n");
+    DELAY(delayTime);
+    ///return NULL;
+}
+}
+void ledChangeDelayTime(void){
+    while (1)
+    {
+        
+    if (gpio_get_level(input_pins[0]))
+    {
+        delayTime+=10;
+        ESP_LOGI("ledChangeDelayTime", "delay %u MS\n", delayTime);
+    }
+    if (gpio_get_level(input_pins[1]))
+    {
+        delayTime-=10;
+        ESP_LOGI("ledChangeDelayTime", "delay %u MS\n", delayTime);
+    }
+    DELAY(100);
+
+    }
+    
+}
+
+
+void app_main(void)
+{
+
+    //SETUP 
+    for (uint8_t i = 0; i < NUM_OF_LED; i++)
+    {
+        gpio_set_direction(led_pins[i], GPIO_MODE_OUTPUT);
+    }
+    gpio_set_direction(input_pins[0], GPIO_MODE_INPUT);
+    gpio_set_direction(input_pins[0], GPIO_MODE_INPUT);
+    DELAY(100);
+    UBaseType_t prio = 1;
+    TaskHandle_t ledChangeInteruptTaskHendler, ledChangeDelayTimeTaskHandler;
+    memset(&ledChangeInteruptTaskHendler,  0, sizeof(TaskHandle_t));
+    memset(&ledChangeDelayTimeTaskHandler, 0, sizeof(TaskHandle_t));
+    xTaskCreatePinnedToCore(ledChangeInterupt, "TASK LED\n", 2048, 
+                (void*)NULL, prio, &ledChangeInteruptTaskHendler, 1);
+    xTaskCreatePinnedToCore(ledChangeDelayTime, "DELAY CHANGE\n", 4048, 
+                (void*)NULL,prio, &ledChangeDelayTimeTaskHandler, 1);
+   // while (1)
+    {
+     //   DELAY(1000);
+
+    }
+        
+        
+                
+        
+    }
+    
+```
+
 
 ## WIFI 
 
