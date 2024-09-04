@@ -647,3 +647,186 @@ static void rest_post(const char* url)
     esp_http_client_cleanup(client);
 }
 ```
+
+ALL HANDLING EXAMPLE:
+
+```c
+#include <stdio.h>
+#include<string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
+#include "freertos/event_groups.h"
+#include "esp_wifi.h"
+#include "esp_log.h"
+#include "nvs_flash.h"
+#include "esp_netif.h"
+#include "esp_http_client.h"
+
+
+volatile bool  is_conected = false;
+
+static void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+{
+   switch (event_id)
+   {
+   case WIFI_EVENT_STA_START:
+       printf("WiFi connecting ... \n");
+       break;
+   case WIFI_EVENT_STA_CONNECTED:
+       printf("WiFi connected ... \n");
+       break;
+   case WIFI_EVENT_STA_DISCONNECTED:
+       printf("WiFi lost connection ... \n");
+       is_conected = false;
+       while(esp_wifi_connect() != ESP_OK);
+       break;
+   case IP_EVENT_STA_GOT_IP:
+   ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+       printf("STA IP: " IPSTR, IP2STR(&event->ip_info.ip));
+       printf("\nWiFi got IP ... \n\n");
+       is_conected = true;
+       break;
+   default:
+       break;
+   }
+}
+
+
+//WIFI EVENT HANDLER MUST BE DEFINED
+
+void wifi_init(){
+    
+     
+    nvs_flash_init();
+    esp_netif_init();                    // TCP/IP initiation 					
+    esp_event_loop_create_default();     // event loop 			                
+    esp_netif_create_default_wifi_sta(); // WiFi station 	                    
+    wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&wifi_initiation); // 					                    
+    // 2 - Wi-Fi Configuration Phase
+    esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL);
+    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL);
+    wifi_config_t wifi_configuration = {
+        .sta = {
+            .ssid = "Wokwi-GUEST",
+            .password = ""}};
+    esp_wifi_set_mode(WIFI_MODE_STA);
+    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_configuration);
+    // 3 - Wi-Fi Start Phase
+    esp_wifi_start();
+    // 4- Wi-Fi Connect Phase
+    while(esp_wifi_connect() != ESP_OK);
+    
+    
+}
+
+esp_err_t client_event_get(esp_http_client_event_handle_t event){
+    switch(event->event_id){
+      case HTTP_EVENT_ON_DATA:
+        esp_http_client_config_t temp;
+        memcpy(&temp, event->user_data, sizeof(esp_http_client_config_t));
+        
+          //printf("\n\n-----------POST-----------\n\n");
+        printf("\n\n-----------GET-----------\n\n");
+        printf("%s\n", (char *)event->data);
+        break;
+
+      default:
+        break;
+    }
+  return ESP_OK;
+}
+
+static void rest_get(const char* url){
+    esp_http_client_config_t client_config = {
+      .url = url,
+      .method = HTTP_METHOD_GET,
+      .cert_pem = NULL,
+      .event_handler = client_event_get,
+
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&client_config);
+    esp_http_client_perform(client);
+    esp_http_client_cleanup(client);
+}
+
+esp_err_t client_event_post(esp_http_client_event_handle_t event){
+    switch(event->event_id){
+      case HTTP_EVENT_ON_DATA:
+        esp_http_client_config_t temp;
+        memcpy(&temp, event->user_data, sizeof(esp_http_client_config_t));
+        
+        printf("\n\n-----------POST-----------\n\n");
+          //printf("\n\n-----------GET-----------\n\n");
+        printf("%s\n", (char *)event->data);
+        break;
+
+      default:
+        break;
+    }
+  return ESP_OK;
+}
+
+
+static void rest_post(const char* url)
+{
+    esp_http_client_config_t config_post = {
+        .url = url,
+        .method = HTTP_METHOD_POST,
+        .cert_pem = NULL,
+        .event_handler = client_event_post};
+        
+    esp_http_client_handle_t client = esp_http_client_init(&config_post);
+
+    char  *post_data = "test ...";
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    esp_http_client_perform(client);
+    esp_http_client_cleanup(client);
+}
+TaskHandle_t t[2];
+//SemaphoreHandle xt;
+void t1(void* args){
+  
+  while(!is_conected){
+    //vTaskSuspend(&t[1]);
+    printf("GET\n");
+    vTaskDelay(100);
+    
+    //vTaskResume(&t[1]);
+  }
+  rest_get("http://worldtimeapi.org/api/timezone/Europe/Sarajevo");
+  while(1){
+    vTaskDelay(100);
+  }
+}
+
+void t2(void *args){
+  while(!is_conected){
+    
+    vTaskDelay(100);
+    printf("POST\n");
+  }
+   rest_post("http://httpbin.org/post");
+  while(1){
+    vTaskDelay(100);
+  }
+}
+
+
+
+void app_main() {
+  printf("Hello, Wokwi!\n");
+  wifi_init();
+  //vTaskDelay(200);
+  xTaskCreatePinnedToCore(t1, "rest_get",  10048,  NULL, 1, &t[0], 1);
+
+  xTaskCreatePinnedToCore(t2, "rest_post", 10048,  NULL, 10, &t[1], 0);
+}
+
+
+
+```
+
