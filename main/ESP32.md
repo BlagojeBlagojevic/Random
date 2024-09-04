@@ -531,4 +531,119 @@ void app_main(void)
 }
 
 ```
-## 
+## ESP_HTTP_CLIENT
+
+`esp_http_client` component provides a set of APIs for making HTTP/S requests from ESP-IDF applications. The steps to use these APIs are as follows:
+
+1. `esp_http_client_init()`: Creates an `esp_http_client_handle_t` instance, i.e., an HTTP client handle based on the given `esp_http_client_config_t` configuration. This function must be the first to be called; default values are assumed for the configuration values that are not explicitly defined by the user.
+
+2. `esp_http_client_perform()`: Performs all operations of the esp_http_client - opening the connection, exchanging data, and closing the connection (as required), while blocking the current task before its completion. All related events are invoked through the event handler (as specified in `esp_http_client_config_t`).
+
+3. `esp_http_client_cleanup()`: Closes the connection (if any) and frees up all the memory allocated to the HTTP client instance. This must be the last function to be called after the completion of operations.
+
+`esp_http_client_config_t` consist of next fields:
+1. .url -> In this field we provide url (ip address also is aceptable)
+
+2. .method -> This sets what method we want to use(all standard methods get/, post/, put/, delete/, ...)
+
+3. .cer_pem -> In this method we nead to provide cert
+
+4. .event_handler -> Hear we nead to provide handler function `esp_err_t event_http(esp_http_client_event_handle_t event)`:
+
+   4.1 `HTTP_EVENT_ERROR`
+
+   4.2 `HTTP_EVENT_ON_CONNECTED`
+
+   4.3 `HTTP_EVENT_HEADERS_SENT`
+
+   4.4 `HTTP_EVENT_ON_HEADER`
+
+   4.5 `HTTP_EVENT_ON_DATA` 
+
+   4.6 `HTTP_EVENT_ON_FINISH`
+
+   4.7 `HTTP_EVENT_DISCONNECTED`
+
+   4.8 `HTTP_EVENT_REDIRECT`
+
+For other fields look : 
+https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/protocols/esp_http_client.html?highlight=esp%20client
+
+
+### REST GET EXAMPLE:
+
+
+1. First we nead to have conection to interent (either wifi or ethernet).
+2. Then we nead to include next heders:
+   ```c
+	#include <stdio.h>
+	#include "freertos/FreeRTOS.h"
+	#include "freertos/task.h"
+	#include "freertos/timers.h"
+	#include "freertos/event_groups.h"
+	#include "esp_wifi.h"
+	#include "esp_log.h"
+	#include "nvs_flash.h"
+	#include "esp_netif.h"
+	#include "esp_http_client.h"
+   ```
+
+3. Then we nead to define http_event_handler: 
+   ```c
+ 	esp_err_t client_event(esp_http_client_event_handle_t event){
+    	switch(event->event_id){
+      		case HTTP_EVENT_ON_DATA:
+        	printf("%s\n", (char *)event->data);  //IF WE ARE GETING THE DATA WE WILL PRINT THEM
+        break;
+
+        default:
+   		break;
+    }
+  	return ESP_OK;
+	}
+   ```
+
+4. For get request we will query http://worldtimeapi.org/api/timezone/Europe/Sarajevo .
+   This should return json.
+   ```c
+    static void rest_get(const char* url){
+    	esp_http_client_config_t client_config = {
+    	  .url = url,
+    	  .method = HTTP_METHOD_GET,
+      	  .cert_pem = NULL,                    //CREATE CONFIG
+      	  .event_handler = client_event,        //ADD EVENT 
+
+    		};
+   	esp_http_client_handle_t client = esp_http_client_init(&client_config);//INIT CONFIG
+   	esp_http_client_perform(client);//SEND DATA
+    	esp_http_client_cleanup(client);//CLEAN DATA
+	}
+   ```
+     
+###  REST POST EXAMPLE 
+
+For post we will indlude same headers and event hendlers
+We will query http://httpbin.org/post this should return same staf as we are sending.
+`esp_http_client_set_post_field(esp_http_client_handle_t , const char* , size_t )` is used to
+sets a data for sending. `esp_http_client_set_header(client, "Content-Type", "application/json")`
+is used to send parse data as JSON "Content-Type" probobly as a HTTP 1,1.
+
+```c
+static void rest_post(const char* url)
+{
+    esp_http_client_config_t config_post = {
+        .url = url,
+        .method = HTTP_METHOD_POST,
+        .cert_pem = NULL,
+        .event_handler = client_event};
+        
+    esp_http_client_handle_t client = esp_http_client_init(&config_post);
+
+    char  *post_data = "test ...";
+    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    esp_http_client_perform(client);
+    esp_http_client_cleanup(client);
+}
+```
