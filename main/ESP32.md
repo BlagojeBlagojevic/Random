@@ -240,8 +240,8 @@ First phase consist of:
 	ESP_ERROR_CHECK(esp_wifi_init(&wifi_config));	
 ```
 
-If nvs flash is enabled  `nvs_flash_init()` 
-all wifi_configs are saved in flash memory and on next setup will be loaded from it. 
+Nvs flash must be enabled  `nvs_flash_init()` . 
+All wifi_configs are saved in flash memory and on next setup will be loaded from it. 
 
 ### Second phase 
 
