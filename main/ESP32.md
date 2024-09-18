@@ -1671,7 +1671,7 @@ static void ethernet_init(){
     spi_device_interface_config_t spi_devcfg = {
         .mode = 0,
         .clock_speed_hz = SPI_CLOCK_FREQUENCY * 1000 * 1000,
-        .spics_io_num = CONFIG_EXAMPLE_ENC28J60_CS_GPIO,
+        .spics_io_num =,
         .queue_size = 20,
         .cs_ena_posttrans = 210,
     };
@@ -1699,7 +1699,7 @@ static void ethernet_init(){
     });
 
     // ENC28J60 Errata #1 check
-    if (emac_enc28j60_get_chip_info(mac) < ENC28J60_REV_B5 && CONFIG_EXAMPLE_ENC28J60_SPI_CLOCK_MHZ < 8) {
+    if (emac_enc28j60_get_chip_info(mac) < ENC28J60_REV_B5 && SPI_CLOCK_FREQUENCY < 8) {
         ESP_LOGE(TAG, "SPI frequency must be at least 8 MHz for chip revision less than 5");
         ESP_ERROR_CHECK(ESP_FAIL);
     }
