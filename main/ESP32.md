@@ -1502,3 +1502,13 @@ void app_main(void)
     start_webserver();
 }
 ```
+
+## ESP32_ETHERNET.H
+
+Ethernet is an asynchronous Carrier Sense Multiple Access with Collision Detect (CSMA/CD) protocol/interface. 
+Normal IEEE 802.3 compliant Ethernet frames are between 64 and 1518 bytes in length. They are made up of five or six different fields: a destination MAC address (DA), a source MAC address (SA), a type/length field, a data payload, an optional padding field and a Cyclic Redundancy Check (CRC). Additionally, when transmitted on the Ethernet medium, a 7-byte preamble field and Start-of-Frame (SOF) delimiter byte are appended to the beginning of the Ethernet packet.
+
+Thus the traffic on the twist-pair cabling.
+
+Direction of packets is controled with a unique adress(MAC) 6 bytes.
+There are two types adress (destination address or source address). 
