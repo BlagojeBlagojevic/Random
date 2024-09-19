@@ -1605,8 +1605,8 @@ For conecting this type of ethernet chip we will use component in examples(ether
 #define SPI_HOST_NUM 1
 #define SPI_CLOCK_FREQUENCY 8
 #define DUPLEX_MODE 1
-//
-** Event handler for Ethernet events */
+//** Event handler for Ethernet events */
+
 static void eth_event_handler(void *arg, esp_event_base_t event_base,
                               int32_t event_id, void *event_data)
 {
