@@ -1503,6 +1503,41 @@ void app_main(void)
 }
 ```
 
+```c
+#include "esp_http_server.h"
+
+
+
+static esp_err_t get(httpd_req_t *req){
+	  char *response_message = "<!DOCTYPE HTML><html><head>\
+                                <title>Static HTML page</title>\
+                                <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
+                                </head><body>\
+                                <h1>Ako ovo ne radi mali najebo si!!!</h1>\
+                                </form><br>\
+                                </body></html>";
+    httpd_resp_send(req, response_message, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+
+
+void server_init(){
+	httpd_config_t server_config = HTTPD_DEFAULT_CONFIG();
+	httpd_handle_t server_handle = NULL;
+    httpd_start(&server_handle, &server_config);
+
+    httpd_uri_t uri_get = {
+        .uri = "/",
+        .method = HTTP_GET,
+        .handler = get,
+        .user_ctx = NULL};
+    httpd_register_uri_handler(server_handle, &uri_get);
+
+}
+
+```
+
 ## ESP32_ETHERNET.H
 
 Ethernet is an asynchronous Carrier Sense Multiple Access with Collision Detect (CSMA/CD) protocol/interface. 
