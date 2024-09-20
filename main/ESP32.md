@@ -1352,6 +1352,96 @@ void app_main(void)
 }
 ```
 ## ESP_HTTP_SERVER.H
+
+`esp_http_server.h` is libary for building of a http sever. Server parse all incoming connections as HTTP trafic.
+There are listeners for both `TCP` and `UDP` trafics. `httpd_start(httpd_handler_t, httpd_config_t)` function starts a server. This function
+expect server handler(probobly a num) and server_config. `httpd_stop(httpd_handler_t)` stops a server and free all 
+asociated memory. For config we mostly use `HTTPD_DEFAULT_CONFIG()`. To register events we will use
+`httpd_register_uri(httpd_handler_t, httpd_uri_t)`. `httpd_uri_t` expects `uri` (links), method `HTTPD_POST`, `HTTPD_GET`, `HTTPD_PUT`, handle expects function pointer in format `esp_err_t *handler (httpd_req_t *req)`.
+### START_WEBSERVER
+```c
+ /* Generate default configuration */
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+
+    /* Empty handle to esp_http_server */
+    httpd_handle_t server = NULL;
+
+    /* Start the httpd server */
+    if (httpd_start(&server, &config) == ESP_OK) {
+        /* Register URI handlers */
+        httpd_register_uri_handler(server, &uri_get);  //POST AND GET HANDLERS MUST BE IPLEMENTED
+        httpd_register_uri_handler(server, &uri_post);
+    }
+    /* If server failed to start, handle will be NULL */
+    return server;
+```
+### STOP_WEBSERVER
+```c
+   if (server) {
+        /* Stop the httpd server */
+        httpd_stop(server);
+    }
+```
+#### Peristent conections
+Inside this component we have ability to have permanent connections(`Sesions`). For menaging of a sesions we will use a context provaided in handler. Context is always the same or bether to be said we will nead to manage memory and all other stuff with it.
+```c
+/* Custom function to free context */
+void free_ctx_func(void *ctx)
+{
+    /* Could be something other than free */
+    free(ctx);
+}
+
+esp_err_t adder_post_handler(httpd_req_t *req)
+{
+    /* Create session's context if not already available */
+    if (! req->sess_ctx) {
+        req->sess_ctx = malloc(sizeof(ANY_DATA_TYPE));  /*!< Pointer to context data */
+        req->free_ctx = free_ctx_func;                  /*!< Function to free context data */
+    }
+
+    /* Access context data */
+    ANY_DATA_TYPE *ctx_data = (ANY_DATA_TYPE *)req->sess_ctx;
+
+    /* Respond */
+    ...............
+    ...............
+    ...............
+
+    return ESP_OK;
+}
+```
+For futher studies look into a 
+https://github.com/espressif/esp-idf/blob/v5.3.1/examples/protocols/http_server/persistent_sockets/main/main.c
+
+As for all componets we coude add a event listener for handing events witch are hapening with a server.
+`esp_err_t esp_event_handler_register(esp_event_base_t event_base, int32_t event_id, esp_event_handler_t event_handler, void *event_handler_arg)` registers the event.
+This is a list of a events witch coude hapend: 
+1. `HTTP_SERVER_EVENT_ERROR`
+
+2. `HTTP_SERVER_EVENT_START`
+
+3. `HTTP_SERVER_EVENT_ON_CONNECTED`
+
+4. `HTTP_SERVER_EVENT_ON_HEADER`
+
+5. `HTTP_SERVER_EVENT_HEADERS_SENT`
+
+6. `HTTP_SERVER_EVENT_ON_DATA`
+
+7. `HTTP_SERVER_EVENT_SENT_DATA`
+
+8. `HTTP_SERVER_EVENT_DISCONNECTED`
+
+9. `HTTP_SERVER_EVENT_STOP`
+
+### Functions
+1. `esp_err_t httpd_req_async_handler_begin(httpd_req_t *r, httpd_req_t **out)` -> Start an asynchronous request.
+2. `esp_err_t httpd_req_async_handler_complete(httpd_req_t *r)` -> Marks async request as finished.
+3. IM `int httpd_req_recv(httpd_req_t *r, char *buf, size_t buf_len)` -> Used to parse and read req to bufer.
+4. IM `esp_err_t httpd_resp_send(httpd_req_t *r, const char *buf, ssize_t buf_len)` -> Used to send bufer to req.
+5. `static inline esp_err_t httpd_resp_send_404(httpd_req_t *r)` -> Used to send a special responses (404 chenge).
+
 ```C
 #include <stdio.h>
 #include <sys/param.h>
