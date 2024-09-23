@@ -1,7 +1,14 @@
 #ifndef CLIENT_H
 #define CLIENT_H
+#include "defs.h"
+#include "esp_http_client.h"
 
+#define TAG "Client"
 
+extern void rest_get(const char* url);
+extern void rest_post(const char* url);
+
+#ifdef CLIENT_IMPLEMNTATION
 esp_err_t _client_event_get(esp_http_client_event_handle_t event){
     switch(event->event_id){
       case HTTP_EVENT_ON_DATA:
@@ -50,7 +57,7 @@ esp_err_t _client_event_post(esp_http_client_event_handle_t event){
 }
 
 
-static void rest_post(const char* url)
+extern void rest_post(const char* url)
 {
     esp_http_client_config_t config_post = {
         .url = url,
@@ -69,4 +76,5 @@ static void rest_post(const char* url)
 }
 
 
+#endif
 #endif
