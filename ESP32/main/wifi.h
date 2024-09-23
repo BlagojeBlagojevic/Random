@@ -4,9 +4,6 @@
 
 #define  tag  "WIFI"
 
-static void _wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, 
-                               i32 event_id, void *event_data);
-
 
 //OR WE PUT THEM IN FILE SYSTEM AND THEN GET THEM OUT
 #define SSID "ASUS_88"
