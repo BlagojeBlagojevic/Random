@@ -1853,8 +1853,57 @@ void app_main(void){
         vTaskDelay(100);
     }
 }
+```
 
+## MDNS
 
+Multicast DNS (mDNS) is a computer networking protocol that resolves hostnames to IP addresses within small networks that do not include a local name server. It is a zero-configuration service, using essentially the same programming interfaces, packet formats and operating semantics as unicast Domain Name System (DNS). It was designed to work as either a stand-alone protocol or compatible with standard DNS servers.
 
+#### Working princip
+
+When an mDNS client needs to resolve a hostname, it sends an IP multicast query message that asks the host having that name to identify itself. That target machine then multicasts a message that includes its IP address. All machines in that subnet can then use that information to update their mDNS caches. Any host can relinquish its claim to a name by sending a response packet with a time to live (TTL) equal to zero.
+https://en.wikipedia.org/wiki/Multicast_DNS
+
+#### How to used it on esp32 
+
+Esp-idf does not contain mDNS implementation. To get mDNS component we nead to clone component from espressif by using comand `idf.py add-dependency espressif/mdns` and than to reconfigure entaire config using `idf.py reconfigure`
+
+For this compnent to be used network stack must be initialized.
+
+This is init of a mdns 
+```c
+#include "mdns.h"
+#include "lwip/apps/netbiosns.h"
+#define HOSTNAME "nesto/"
+#define MDNS_INSTANCE "mDNS instance"
+
+static void mdns_config(){
+
+    mdns_init();   //Initalize
+    mdns_hostname_set(HOSTNAME);
+    mdns_instance_name_set(MDNS_INSTANCE);
+
+    mdns_txt_item_t serviceTxtData[] = {
+        {"board", "esp32"},
+        {"path", "/"}
+    };
+
+    ESP_ERROR_CHECK(mdns_service_add("ESP32-WebServer", "_http", "_tcp", 80, serviceTxtData,
+                                     sizeof(serviceTxtData) / sizeof(serviceTxtData[0])));
+
+}
+
+```
+
+After we configure a component we will nead to use a netbios interface to resolve uniqe names  
+```c
+void app_main(){
+    //ethernet_init();
+    wifi_init();
+    mdns_config();
+    netbiosns_init();
+    netbiosns_set_name(HOSTNAME);
+   
+}
 
 ```
