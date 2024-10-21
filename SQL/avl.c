@@ -202,11 +202,17 @@ void destroyTree(Node *root){
 int main() {
   srand(4444);
   Node *root = NULL;
-  for(int i = 0; i < 100; i++){
-    int key = rand()%10000 + i;
+  for(int i = 0; i < 1000000; i++){
+    //int key = rand()%10000 + i;
     root = insertNode(root, i);
   }
-  printTree(root);
+  //printTree(root);
+  for(int i = 0; i < 1000000; i++){
+    root = deleteNode(root, i);
+    //printf("Tree %d\n\n", i);
+    //printTree(root);
+  }
+  
   destroyTree(root);
   //int a;
   //scanf("%d", &a);
