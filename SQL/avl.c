@@ -1,214 +1,214 @@
-#include<assert.h>
-#include<stdio.h>
-#include<stdlib.h>
+// AVL tree implementation in C
 
-#define NodeAlloc malloc
+#include <stdio.h>
+#include <stdlib.h>
 
+#define NODE_ALLOC malloc
 
-#define MAX(a, b) ((a) > (b)) ? (a)  :  (b)
-
-#define HEIGHT(n)  ((n) == NULL) ? 0 : (n)->height
-
-#define BFACTOR(n)  ((n) == NULL) ? 0 : ((HEIGHT(n->left)) - (HEIGHT(n->right)))
-
+// Create Node
 typedef struct Node {
-	struct Node* left;
-	struct Node* right;
-	int key;
-	int height;
-	char* value;
-	} Node;
+  int key;
+  struct Node *left;
+  struct Node *right;
+  int height;
+}Node;
 
-Node* newNode(int key) {
-	Node* n = NodeAlloc(1*sizeof(Node*));
-	n->key = key;
-	n->left = NULL;
-	n->right = NULL;
-	n->height = 1;
+// Calculate height
+static inline int _height(Node *N) {
+  if (N == NULL)
+    return 0;
+  return N->height;
+}
 
-	return n;
-	}
+static inline int _max(int a, int b) {
+  return (a > b) ? a : b;
+}
 
+// Create a node
+Node *newNode(int key) {
+  Node *node = NODE_ALLOC(sizeof(Node));
+  node->key = key;
+  node->left = NULL;
+  node->right = NULL;
+  node->height = 1;
+  return node;
+}
 
+// Right rotate
+struct Node *_rightRotate(Node *y) {
 
+  //Node *x = NODE_ALLOC(sizeof(Node*)); 
+  //Node *T2 = NODE_ALLOC(sizeof(Node*));
+  Node *x = y->left;
+  Node *T2 = x->right;
 
-Node* _rightRotate(Node* n) {
-	Node* x = n->left;
-	Node* temp = n->right;
-	x->right = n;
-	n->left = temp;
-	n->height = MAX(HEIGHT(n->left), HEIGHT(n->right)) + 1;
-	x->height = MAX(HEIGHT(x->left), HEIGHT(x->right)) + 1;
+  x->right = y;
+  y->left = T2;
 
-	return x;
+  y->height = _max(_height(y->left), _height(y->right)) + 1;
+  x->height = _max(_height(x->left), _height(x->right)) + 1;
+  //free(T2);
+  return x;
+}
 
-	}
+// Left rotate
+Node *_leftRotate(Node *x) {
+  //Node *y = NODE_ALLOC(sizeof(Node*)); 
+  //Node *T2 = NODE_ALLOC(sizeof(Node*));
+  Node *y = x->right;
+  Node *T2 = y->left;
 
-Node* _leftRotate(Node* n) {
-	Node* x = n->right;
-	Node* temp = n->left;
-	x->left = n;
-	n->right = temp;
-	n->height = MAX(HEIGHT(n->left), HEIGHT(n->right)) + 1;
-	x->height = MAX(HEIGHT(x->left), HEIGHT(x->right)) + 1;
+  y->left = x;
+  x->right = T2;
 
-	return x;
+  x->height = _max(_height(x->left), _height(x->right)) + 1;
+  y->height = _max(_height(y->left), _height(y->right)) + 1;
+  //free(T2);
+  return y;
+}
 
-	}
+// Get the balance factor
+int _getBalance(Node *N) {
+  if (N == NULL)
+    return 0;
+  return _height(N->left) - _height(N->right);
+}
 
-Node* insertNode(Node* n, int key) {
-	if (n == NULL) {
-		return newNode(key);
-		}
+// Insert node
+Node *insertNode(Node *node, int key) {
+  // Find the correct position to insertNode the node and insertNode it
+  if (node == NULL)
+    return (newNode(key));
 
-	if(key < n->key) {
-		n->left = insertNode(n->left, key);
-		}
-	else if(key > n->key) {
-		n->right = insertNode(n->right, key);
-		}
+  if (key < node->key)
+    node->left = insertNode(node->left, key);
+  else if (key > node->key)
+    node->right = insertNode(node->right, key);
+  else
+    return node;
 
-	else {
-		return n;
-		}
+  // Update the balance factor of each node and
+  // Balance the tree
+  node->height = 1 + _max(_height(node->left), _height(node->right));
 
-	n->height = 1 + MAX(HEIGHT(n->left), HEIGHT(n->right));
-	//TODO static nop lets compiler
-	int balance = BFACTOR(n);
-	if (balance > 1 && key < n->left->key)
-		return _rightRotate(n);
+  const int balance = _getBalance(node);
+  if (balance > 1 && key < node->left->key)
+    return _rightRotate(node);
 
-	if (balance < -1 && key > n->right->key)
-		return _leftRotate(n);
+  if (balance < -1 && key > node->right->key)
+    return _leftRotate(node);
 
-	if (balance > 1 && key > n->left->key) {
-		n->left = _leftRotate(n->left);
-		return _rightRotate(n);
-		}
+  if (balance > 1 && key > node->left->key) {
+    node->left = _leftRotate(node->left);
+    return _rightRotate(node);
+  }
 
-	if (balance < -1 && key < n->right->key) {
-		n->right = _rightRotate(n->right);
-		return _leftRotate(n);
-		}
+  if (balance < -1 && key < node->right->key) {
+    node->right = _rightRotate(node->right);
+    return _leftRotate(node);
+  }
 
-	return n;
-	}
+  return node;
+}
 
-
-Node* minValueNode(Node *n) {
-  Node *current = n;
+Node *_minValueNode(Node *node) {
+  Node *current = node;
 
   while (current->left != NULL)
     current = current->left;
 
   return current;
 }
-Node* deleteNode(Node* n, int key)
-{
-    // STEP 1: PERFORM STANDARD BST DELETE
 
-    if (n == NULL)
-        return n;
+// Delete a nodes
+Node *deleteNode(Node *root, int key) {
+  // Find the node and delete it
+  if (root == NULL)
+    return root;
 
-    // If the key to be deleted is smaller than the
-    // root's key, then it lies in left subtree
-    if ( key < n->key )
-        n->left = deleteNode(n->left, key);
+  if (key < root->key)
+    root->left = deleteNode(root->left, key);
 
-    // If the key to be deleted is greater than the
-    // root's key, then it lies in right subtree
-    else if( key > n->key )
-        n->right = deleteNode(n->right, key);
+  else if (key > root->key)
+    root->right = deleteNode(root->right, key);
 
-    // if key is same as root's key, then This is
-    // the node to be deleted
-    else
-    {
-        // node with only one child or no child
-        if( (n->left == NULL) || (n->right == NULL) )
-        {
-          Node *temp = n->left ? n->left : n->right;
+  else {
+    if ((root->left == NULL) || (root->right == NULL)) {
+      Node *temp = root->left ? root->left : root->right;
 
-            // No child case
-            if (temp == NULL)
-            {
-                temp = n;
-                n = NULL;
-            }
-            else // One child case
-             *n = *temp; // Copy the contents of
-                            // the non-empty child
-            free(temp);
-        }
-        else
-        {
-            // node with two children: Get the inorder
-            // successor (smallest in the right subtree)
-            Node* temp = minValueNode(n->right);
+      if (temp == NULL) {
+        temp = root;
+        root = NULL;
+      } else
+        *root = *temp;
+      free(temp);
+    } else {
+      Node *temp = _minValueNode(root->right);
 
-            // Copy the inorder successor's data to this node
-            n->key = temp->key;
+      root->key = temp->key;
 
-            // Delete the inorder successor
-            n->right = deleteNode(n->right, temp->key);
-        }
+      root->right = deleteNode(root->right, temp->key);
     }
+  }
 
-    // If the tree had only one node then return
-    if (n == NULL)
-      return n;
+  if (root == NULL)
+    return root;
 
-		//return root;
+  // Update the balance factor of each node and
+  // balance the tree
+  root->height = 1 + _max(_height(root->left), _height(root->right));
 
-  n->height = 1 + MAX(HEIGHT(n->left), HEIGHT(n->right));
-	//TODO static nop lets compiler
-	int balance = BFACTOR(n);
-	if (balance > 1 && key < n->left->key)
-		return _rightRotate(n);
+  const int balance = _getBalance(root);
+  if (balance > 1 && _getBalance(root->left) >= 0)
+    return _rightRotate(root);
 
-	if (balance < -1 && key > n->right->key)
-		return _leftRotate(n);
+  if (balance > 1 && _getBalance(root->left) < 0) {
+    root->left = _leftRotate(root->left);
+    return _rightRotate(root);
+  }
 
-	if (balance > 1 && key > n->left->key) {
-		n->left = _leftRotate(n->left);
-		return _rightRotate(n);
-		}
+  if (balance < -1 && _getBalance(root->right) <= 0)
+    return _leftRotate(root);
 
-	if (balance < -1 && key < n->right->key) {
-		n->right = _rightRotate(n->right);
-		return _leftRotate(n);
-		}
+  if (balance < -1 && _getBalance(root->right) > 0) {
+    root->right = _rightRotate(root->right);
+    return _leftRotate(root);
+  }
 
-	return n;
-}// Print the tree
-void printPreOrder(Node *root) {
+  return root;
+}
+
+// Print the tree
+void printTree(Node *root) {
   if (root != NULL) {
     printf("%d ", root->key);
-    printPreOrder(root->left);
-    printPreOrder(root->right);
+    printTree(root->left);
+    printTree(root->right);
   }
 }
 
+void destroyTree(Node *root){
+    if(root != NULL){
+        destroyTree(root->left);
+        destroyTree(root->right);
+        free(root);
 
+    }
+    return;
+
+}
 
 
 int main() {
-	Node *root = NULL;
-
-  root = insertNode(root, 24);
-  root = insertNode(root, 13);
-  root = insertNode(root, 7);
-  root = insertNode(root, 4);
-  root = insertNode(root, 51);
-  root = insertNode(root, 33);
-  root = insertNode(root, 81);
-
-  printPreOrder(root);
-
-  root = deleteNode(root, 7);
-
-  printf("\nAfter deletion: ");
-  printPreOrder(root);
-
-
-	}
+  srand(4444);
+  Node *root = NULL;
+  for(int i = 0; i < 100; i++){
+    int key = rand()%10000 + i;
+    root = insertNode(root, i);
+  }
+  printTree(root);
+  destroyTree(root);
+  //int a;
+  //scanf("%d", &a);
+  return 0;
+}
