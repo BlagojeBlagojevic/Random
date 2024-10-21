@@ -1,5 +1,3 @@
-// AVL tree implementation in C
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -35,7 +33,7 @@ Node *newNode(int key) {
 }
 
 // Right rotate
-struct Node *_rightRotate(Node *y) {
+Node *_rightRotate(Node *y) {
 
   //Node *x = NODE_ALLOC(sizeof(Node*)); 
   //Node *T2 = NODE_ALLOC(sizeof(Node*));
