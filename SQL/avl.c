@@ -1,16 +1,51 @@
+#ifndef AVL_TREE_H
+#define AVL_TREE_H
+
+
 #include <stdio.h>
 #include <stdlib.h>
+#include<string.h>
+
+#define NODE_MEMCPY memcpy
+#define NODE_STRLEN strlen
+
 
 #define NODE_ALLOC malloc
 
+#define MAX_SIZE_OF_VALUE 1024
+
+#define VALUE_CHECK(size) if(size >=  MAX_SIZE_OF_VALUE) size = MAX_SIZE_OF_VALUE 
+
+
+
+#include<stdint.h>
+//KEY IS GLOBAL STATE
+uint64_t key = 0;
+
+
 // Create Node
 typedef struct Node {
-  int key;
   struct Node *left;
   struct Node *right;
-  int height;
+  uint64_t key;
+	int height;
+  char value[MAX_SIZE_OF_VALUE];
 }Node;
 
+
+Node *newNode(int key, char* value, size_t size);
+//Node *insertNode(Node *node, int key, char* value, size_t size);
+//Node *deleteNode(Node *root, int key);
+void printTree(Node *root);
+void printValueTree(Node* root);
+void destroyTree(Node *root);
+
+//USE THIS MACROS
+#define INSERT_NODE(...)   insertNode(__VA_ARGS__); key++;
+#define DELETE_NODE(...)   deleteNode(__VA_ARGS__); key--;
+
+
+#ifdef AVL_TREE_IMPLEMETATION
 // Calculate height
 static inline int _height(Node *N) {
   if (N == NULL)
@@ -22,13 +57,23 @@ static inline int _max(int a, int b) {
   return (a > b) ? a : b;
 }
 
+
+
+
+
 // Create a node
-Node *newNode(int key) {
+Node *newNode(int key, char* value, size_t size) {
+
   Node *node = NODE_ALLOC(sizeof(Node));
   node->key = key;
   node->left = NULL;
   node->right = NULL;
   node->height = 1;
+	VALUE_CHECK(size);
+	//LET BUFFER BE FULL
+  //node->value = NODE_ALLOC(sizeof(char) * MAX_SIZE_OF_VALUE);
+  //assert(strlen(value) >= MAX_SIZE_OF_VALUE);
+	NODE_MEMCPY(node->value, value, sizeof(char) * size);
   return node;
 }
 
@@ -73,15 +118,15 @@ int _getBalance(Node *N) {
 }
 
 // Insert node
-Node *insertNode(Node *node, int key) {
+Node *insertNode(Node *node, char* value, size_t size) {
   // Find the correct position to insertNode the node and insertNode it
   if (node == NULL)
-    return (newNode(key));
+    return (newNode(key, value ,size));
 
   if (key < node->key)
-    node->left = insertNode(node->left, key);
+    node->left = insertNode(node->left, value, size);
   else if (key > node->key)
-    node->right = insertNode(node->right, key);
+    node->right = insertNode(node->right, value, size);
   else
     return node;
 
@@ -133,19 +178,24 @@ Node *deleteNode(Node *root, int key) {
   else {
     if ((root->left == NULL) || (root->right == NULL)) {
       Node *temp = root->left ? root->left : root->right;
-
+			
       if (temp == NULL) {
         temp = root;
         root = NULL;
+        //
       } else
         *root = *temp;
+      
+			//FREE resources
+			//free(temp->value);
       free(temp);
     } else {
       Node *temp = _minValueNode(root->right);
 
       root->key = temp->key;
-
+			//root->value = temp->value;
       root->right = deleteNode(root->right, temp->key);
+      free(temp);
     }
   }
 
@@ -185,34 +235,32 @@ void printTree(Node *root) {
   }
 }
 
+void printValueTree(Node* root){
+	if (root != NULL) {
+    printf("%s ", root->value);
+    printValueTree(root->left);
+    printValueTree(root->right);
+  }
+}
+
+
 void destroyTree(Node *root){
     if(root != NULL){
         destroyTree(root->left);
         destroyTree(root->right);
-        free(root);
-
+        free(root->value);
+				free(root);
+				
     }
     return;
 
 }
 
 
-int main() {
-  srand(4444);
-  Node *root = NULL;
-  for(int i = 0; i < 1000000; i++){
-    //int key = rand()%10000 + i;
-    root = insertNode(root, i);
-  }
-  //printTree(root);
-  for(int i = 0; i < 1000000; i++){
-    root = deleteNode(root, i);
-    //printf("Tree %d\n\n", i);
-    //printTree(root);
-  }
-  
-  destroyTree(root);
-  //int a;
-  //scanf("%d", &a);
-  return 0;
-}
+
+
+
+
+
+#endif
+#endif
