@@ -2005,8 +2005,43 @@ Next step inits the host stack `nimble_port_init()`.
 
 In next 3 steps we add a name for our ble device(How we will find it on a network), and also init a gat, gap service.
 ```c
+
 ble_svc_gap_device_name_set("BLE_asdasd"); // 4 - Initialize NimBLE configuration - server name
 ble_svc_gap_init();                        // 4 - Initialize NimBLE configuration - gap service
 ble_svc_gatt_init();                       // 4 - Initialize NimBLE configuration - gatt service
+
 ```
+Next steps depends on this struct `static const struct ble_gatt_svc_def `.
+This struct is array of pointers to other service definitions. Example of a structure look like 
+```c
+// UUID - Universal Unique Identifier
+static const struct ble_gatt_svc_def gatt_svcs[] = {
+		{
+		.type = BLE_GATT_SVC_TYPE_PRIMARY,
+		.uuid = BLE_UUID16_DECLARE(0x180),                 // Define UUID for device type
+		.characteristics = (struct ble_gatt_chr_def[]) {
+				{
+				.uuid = BLE_UUID16_DECLARE(0xFEF4),           // Define UUID for reading
+				.flags = BLE_GATT_CHR_F_READ,
+				.access_cb = device_read
+				}, {
+				.uuid = BLE_UUID16_DECLARE(0xDEAD),           // Define UUID for writing
+				.flags = BLE_GATT_CHR_F_WRITE,
+				.access_cb = device_write
+				},
+				{0}
+			}
+		},
+		{0}
+	};
+```
+As we can see above we have a one device whitch is setup to be a primary one `.type = BLE_GATT_SVC_TYPE_PRIMARY,`.
+There are 2 types of uuid: 
+	1.  16 bit one -> This is addresed by a standard `.uuid = BLE_UUID16_DECLARE(0xFEF4)`
+	2.  Arbitary lenght -> Not addresed by a standard 
+
+ Characteristics are array of ptr of a struct `struct ble_gatt_chr_def[]`
+ Flags setsup are we reading or writing `BLE_GATT_CHR_F_WRITE, BLE_GATT_CHR_F_READ`.
+ 
+
 
