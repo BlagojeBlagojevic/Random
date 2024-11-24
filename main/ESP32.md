@@ -1907,3 +1907,106 @@ void app_main(){
 }
 
 ```
+## Bluetooth Low Energy (BLE)
+
+
+The Bluetooth system can be divided into two different categories: Classic Bluetooth and Bluetooth Low
+Energy (BLE). ESP32 supports dual-mode Bluetooth, meaning that both Classic Bluetooth
+and Bluetooth LE are supported by ESP32. Clasical bluethooth is a striming protocol hance it consumes more energy 
+then it counterpart Bluetooth Low Energy(BLE). Esp32 bluethooth Controller has integrated a variety of functions, including H4 protocol, HCI, LinkManager, Link Controller, Device Manager, and HW Interface.
+
+
+Bluetooth Low Energy (BLE): Bluetooth Low Energy is a wireless communication protocol designed for energy-efficient data transmission. It’s ideal for IoT devices, wearables, and applications where power consumption is critical.
+On esp32 BLE stack for use is nible bluethooth stack.
+
+### GATT
+
+The ATT specifies the minimum data storage unit in the Bluetooth LE architecture, while the
+GATT defines how to represent a data set using attribute values and descriptors, how to
+aggregate similar data into a service, and how to find out what services and data a peer
+device owns.
+The GATT introduces the concept of Characteristics, which are about information that is
+not purely numerical, as in the cases outlined below:
+
+• The unit of a given value, for example, weight measured in kilograms (kg),
+temperature measured in Celsius (℃), and so on.
+
+• The name of a given value. For example, for characteristics with the same UUID, e.g.
+temperature attribute, the name of the value informs the peer device that this value
+indicates “the temperature in the master bedroom”, while the other one indicates “the
+temperature in the living room”.
+
+• The exponent of excessive data numbers, such as 230,000 and 460,000. Given that
+the exponent is already specified as 10^4, transmitting only “23” and “46” is enough
+to represent 230,000 and 460,000.
+These are just a few examples of the many existing requirements for describing data
+accurately in actual applications. In order to provide more nuanced information, a large
+piece of data space should be reserved to store this additional information in each
+characteristic. However, in many cases, most of the extra space reserved will not be used.
+Such a design, then, will not comply with BLE's prerequisite to have as concise as possible
+protocols. In cases like this, the GATT specification introduces the concept of descriptors
+to outline this additional information. It must be noted that each piece of data and
+descriptor do not have a one-to-one correspondence, that is, complex data can have
+multiple descriptors, while simple data can have no descriptors at all.
+
+
+### Generic Access Profile (Gap)
+
+The GAP (the Generic Access Profile) defines the discovery process, device
+management and the establishment of device connection between Bluetooth LE devices.
+The Bluetooth LE GAP is implemented in the form of API calls and Event returns. The
+processing result of API calls in the protocol stack is returned by Events. When a peer
+device initiates a request, the status of that peer device is also returned by an Event.
+There are four GAP roles defined for a Bluetooth LE device:
+
+• Broadcaster: A broadcaster is a device that sends advertising packets, so it can be
+discovered by the observers. This device can only advertise, but cannot be
+connected.
+
+• Observer: An observer is a device that scans for broadcasters and reports this
+information to an application. This device can only send scan requests, but cannot be
+connected.
+
+• Peripheral: A peripheral is a device that advertises by using connectable advertising
+packets and becomes a slave once it gets connected.
+
+• Central: A central is a device that initiates connections to peripherals and becomes a
+master once a physical link is established.
+
+### Nimble stack
+As we already sad nible stack is a ble stack used on esp32.
+To get this stack to work we first nead to include next headers
+```c
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/event_groups.h"
+#include "esp_event.h"
+#include "nvs_flash.h"
+#include "esp_log.h"
+#include "esp_nimble_hci.h"
+#include "nimble/nimble_port.h"
+#include "nimble/nimble_port_freertos.h"
+#include "host/ble_hs.h"
+#include "services/gap/ble_svc_gap.h"
+#include "services/gatt/ble_svc_gatt.h"
+#include "sdkconfig.h"
+```
+Also we nead to setup type of a ble stack(nimble stack) in menuconfig. It is under the compononent category.
+
+This stack depends on nvs flash (like most of periferals probably some basic info are saved there) so we nead to init it ` nvs_flash_init()`.
+
+Next step is only done on older version of a esp32. This step `esp_nimble_hci_and_controller_init()` 
+is moved in nimble_port_init().
+This step initilaise a comtroler on esp32 witch act kinda like a bridge betwean chip and esp32. I mean 
+it setup all of them you get the point. 
+
+Next step inits the host stack `nimble_port_init()`.
+
+In next 3 steps we add a name for our ble device(How we will find it on a network), and also init a gat, gap service.
+```c
+ble_svc_gap_device_name_set("BLE_asdasd"); // 4 - Initialize NimBLE configuration - server name
+ble_svc_gap_init();                        // 4 - Initialize NimBLE configuration - gap service
+ble_svc_gatt_init();                       // 4 - Initialize NimBLE configuration - gatt service
+```
+
