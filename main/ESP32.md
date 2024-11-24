@@ -2041,7 +2041,19 @@ There are 2 types of uuid:
 	2.  Arbitary lenght -> Not addresed by a standard 
 
  Characteristics are array of ptr of a struct `struct ble_gatt_chr_def[]`
- Flags setsup are we reading or writing `BLE_GATT_CHR_F_WRITE, BLE_GATT_CHR_F_READ`.
- 
+ Flags sets up are we reading or writing `BLE_GATT_CHR_F_WRITE, BLE_GATT_CHR_F_READ`.
+ Access_cb is a callback for what we runing if above event (we coude call it like that) trigered.
+ Examples of device_write and device_read callbacks :
+
+ #### deveice_read: 
+
+```c
+// Read data from ESP32 defined as server
+static int device_read(uint16_t con_handle, uint16_t attr_handle, 
+											 struct ble_gatt_access_ctxt *ctxt, void *arg) {
+	os_mbuf_append(ctxt->om, "Data from the server", strlen("Data from the server"));
+	return 0;
+	}
+```
 
 
