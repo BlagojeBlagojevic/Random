@@ -13,7 +13,7 @@
 static Arena node_arena = {0};
 
 
-#define WIDTH 400
+#define WIDTH  400
 #define HEIGHT 400
 
 
@@ -80,9 +80,10 @@ typedef union {
 
 typedef struct Node{
 	Node_Kind kind;
-	Node_As as;
 	const char *file;
 	int line;
+	Node_As as;
+	
 }Node;
 
 Node *node_loc(const char* file, int line, Node_Kind kind){
@@ -99,18 +100,17 @@ Node *node_number_loc(const char *file, int line, float number){
 	node->as.number = number;
 	return node;
 }
-#define node_number(number) node_number_loc(__FILE__, __LINE__, number)
+#define node_number(number) node_number_loc(__FILE__, __LINE__, (number))
 
-Node *node_boolean_loc(const char *file, int line, bool isTrue)
-{
+Node *node_boolean_loc(const char *file, int line, bool isTrue){
     Node *node = node_loc(file, line, NK_BOOL);
     node->as.isTrue = isTrue;
     return node;
 }
-#define node_boolean(isTrue) node_boolean_loc(__FILE__, __LINE__, isTrue)
+#define node_boolean(isTrue) node_boolean_loc(__FILE__, __LINE__, (isTrue))
 
 
-Node *node_gt_loc(char *file, int line, Node* lhs, Node *rhs){
+Node *node_gt_loc(const char *file, int line, Node* lhs, Node *rhs){
 	Node *node = node_loc(file, line, NK_GRATER);
 	node->as.binop.lhs = lhs;
 	node->as.binop.rhs = rhs;
@@ -129,7 +129,8 @@ Node *node_if_loc(const char *file, int line, Node *cond, Node *then, Node *elze
     node->as.iff.elze = elze;
     return node;
 }
-#define node_if(cond, then, elze) node_if_loc(__FILE__, __LINE__, cond, then, elze)
+
+#define node_if(cond, then, elze) node_if_loc(__FILE__, __LINE__, (cond), (then), (elze))
 
 
 
@@ -146,7 +147,7 @@ Node *node_y_loc(const char* file, int line){
 }
 #define node_y() node_y_loc(__FILE__, __LINE__)
 
-Node *node_add_loc(char *file, int line, Node* lhs, Node *rhs){
+Node *node_add_loc(const char *file, int line, Node* lhs, Node *rhs){
 	Node *node = node_loc(file, line, NK_ADD);
 	node->as.binop.lhs = lhs;
 	node->as.binop.rhs = rhs;
@@ -155,7 +156,7 @@ Node *node_add_loc(char *file, int line, Node* lhs, Node *rhs){
 #define node_add(lhs, rhs) node_add_loc(__FILE__, __LINE__, lhs, rhs)
 
 
-Node *node_mult_loc(char *file, int line, Node* lhs, Node *rhs){
+Node *node_mult_loc(const char *file, int line, Node* lhs, Node *rhs){
 	Node *node = node_loc(file, line, NK_MULT);
 	node->as.binop.lhs = lhs;
 	node->as.binop.rhs = rhs;
@@ -163,7 +164,7 @@ Node *node_mult_loc(char *file, int line, Node* lhs, Node *rhs){
 }
 #define node_mult(lhs, rhs) node_mult_loc(__FILE__, __LINE__, lhs, rhs)
 
-Node *node_mod_loc(char *file, int line, Node* lhs, Node *rhs){
+Node *node_mod_loc(const char *file, int line, Node* lhs, Node *rhs){
 	Node *node = node_loc(file, line, NK_MOD);
 	node->as.binop.lhs = lhs;
 	node->as.binop.rhs = rhs;
@@ -173,7 +174,7 @@ Node *node_mod_loc(char *file, int line, Node* lhs, Node *rhs){
 
 
 
-Node *node_triple_loc(char* file, int line, Node* a, Node *b, Node *c){
+Node *node_triple_loc(const char* file, int line, Node* a, Node *b, Node *c){
 	Node *node = node_loc(file, line, NK_TRIPLE);
 	node->as.triple.first  = a;
 	node->as.triple.second = b;
@@ -312,9 +313,11 @@ Node* eval(Node *expr, float x, float y){
 	
 	case NK_GRATER: {
         Node *lhs = eval(expr->as.binop.lhs, x, y);
+		if (!lhs) return NULL;		
         if(!expect_number(lhs)) return NULL;
         //if (!expect_number(lhs)) return NULL;
         Node *rhs = eval(expr->as.binop.rhs, x, y);
+		if (!rhs) return NULL;
         if(!expect_number(rhs)) return NULL;
         //i//f (!expect_number(rhs)) return NULL;
         return node_boolean_loc(expr->file, expr->line, lhs->as.number > rhs->as.number);
@@ -326,33 +329,43 @@ Node* eval(Node *expr, float x, float y){
         if (!expect_boolean(cond)) return NULL;
         Node *then = eval(expr->as.iff.then, x, y);
         if (!then) return NULL;
+		if (!expect_triple(then)) return NULL;
         Node *elze = eval(expr->as.iff.elze, x, y);
         if (!elze) return NULL;
+		if (!expect_triple(elze)) return NULL;
         return cond->as.isTrue ? then : elze;
     }
 
 	//math
 	case NK_ADD:{
-		Node *lhs = eval(expr->as.binop.lhs, x, y);	
+		Node *lhs = eval(expr->as.binop.lhs, x, y);
+		if (!lhs) return NULL;	
 		if(!expect_number(lhs)) return NULL; 
 		Node *rhs = eval(expr->as.binop.rhs, x, y);
+		if (!rhs) return NULL;
 		if(!expect_number(rhs)) return NULL;
-			return node_number_loc(expr->file, expr->line, lhs->as.number + rhs->as.number);
+			return node_number_loc(expr->file, expr->line, 
+								   lhs->as.number + rhs->as.number);
 		}
 	case NK_MULT:{
 		Node *lhs = eval(expr->as.binop.lhs, x, y);
+		if (!lhs) return NULL;
 		if(!expect_number(lhs)) return NULL;
 		Node *rhs = eval(expr->as.binop.rhs, x, y);
+		if (!rhs) return NULL;
 		if(!expect_number(rhs)) return NULL;
-		        return node_num_loc(expr->file, expr->line, lhs->as.number > rhs->as.number);
+		    return node_number_loc(expr->file, expr->line, 
+								   lhs->as.number * rhs->as.number);
 		}
 	case NK_MOD:{
 		Node *lhs = eval(expr->as.binop.lhs, x, y);
+		if (!lhs) return NULL;
 		if(!expect_number(lhs)) return NULL;
 		Node *rhs = eval(expr->as.binop.rhs, x, y);
 		if(!expect_number(rhs)) return NULL;
+		if (!lhs) return NULL;
 		return node_number_loc(expr->file, expr->line, 
-			   fmod(lhs->as.number, rhs->as.number));
+			   fmodf(lhs->as.number, rhs->as.number));
 		}
 	
 
@@ -360,8 +373,11 @@ Node* eval(Node *expr, float x, float y){
 	//Color
 	case NK_TRIPLE:
 		Node *first  = eval(expr->as.triple.first,  x, y);
+		if (!first) return NULL;
 		Node *second = eval(expr->as.triple.second, x, y);
+		if (!second) return NULL;
 		Node *thirth = eval(expr->as.triple.thirth, x, y);
+		if (!thirth) return NULL;
 		return node_triple_loc(expr->file, expr->line, first, second, thirth);
 	default:
 		//break;
@@ -431,7 +447,22 @@ Node *node =
 	//node_print_ln(eval(node, 1, 1.4));
 	//bool ok = render_pixels(node_triple(node_x(), node_x(), node_x()));
 	//return 0;
-	bool ok = render_pixels(node);
+	//bool ok = render_pixels(node);
+//	bool ok = render_pixels(node_if(
+//										node_gt(node_x(), node_y()), 
+//										node_triple(node_x(), node_x(), node_x()),
+//							 			node_triple(node_number(0), node_number(0),node_number(0))));
+	  bool ok = render_pixels(
+        node_if(
+             node_gt(node_mult(node_x(), node_y()), node_number(0)),
+             node_triple(
+                 node_x(),
+                 node_y(),
+                 node_number(1)),
+             node_triple(
+                 node_mod(node_x(), node_y()),
+                 node_mod(node_x(), node_y()),
+                 node_mod(node_x(), node_y()))));
 	if(!ok) return -1;
 	stbi_write_png("nesto.png", WIDTH, HEIGHT, 4, pixels, sizeof(RGBA) * WIDTH);
 	//printf("\n");
