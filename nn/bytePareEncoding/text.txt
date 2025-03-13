@@ -1,0 +1,220 @@
+
+Skip to main content
+Examples of Languages that can be interpreted and compiled? : r/ProgrammingLangu  
+Advertise on Reddit
+Create
+Create post
+r/ProgrammingLanguages icon
+Go to ProgrammingLanguages
+r/ProgrammingLanguages
+•
+4 hr. ago
+QuirkyImage
+Examples of Languages that can be interpreted and compiled?
+Discussion
+
+Are there any good examples of high level languages that are interpreted, scriptable that also have a good complier. When I mean compiler I mean compiling to machine code as a standalone OS compatible binary. What I am not looking for is executables with embedded interpreters, byte code or hacks like unzipping code to run or require tools to be pre installed. From what I understand to be compiled the language will probably have to be statically typed for the compiler. I am surprised there isnt anything mainstream so perhaps there are stumbling blocks and issues?
+
+Update:
+It would seem that I have forgotten compiled languages that offer a REPL.
+Sort by:
+u/bullno1 avatar
+bullno1
+•
+4h ago
+
+    From what I understand to be compiled the language will probably have to be statically typed for the compiler
+
+Not necessarily, you can just emit native code that does type checking at runtime.
+u/software-person avatar
+software-person
+•
+2h ago
+
+Yes, "statically typed" and "compiled" are orthogonal concepts, though there is certainly a strong correlation between static/compiled and dynamic/interpreted.
+Gator_aide
+•
+4h ago
+
+I believe both OCaml and Haskell fit the bill here, but I'm sure there are others.
+
+This sort of question comes up pretty frequently in this sub, so I want to clarify that any language can be interpreted or compiled. It is not something intrinsic to the language. Similarly, a language doesn't have to be statically typed for the compiler.
+MCSajjadH
+•
+3h ago
+
+Common lisp (at least the SBCL implementation) is capable of this!
+
+Additionally I wrote a compiler (rumi) that does it the other way around - binary compilation by default with the option to be used as scripting during compjle time. It was a proof of concept to show this is possible.
+QuirkyImage
+•
+3h ago
+
+It would seem that I have forgotten compiled languages that offer a REPL.
+u/homoiconic avatar
+homoiconic
+•
+2h ago
+
+Lisp in Small Pieces by Christian Queinnec is a book devoted to explaining Lisp's semantics by implementing various dialects of Lisp via interpreter and/or compiler.
+lispm
+•
+2h ago
+
+A compiled Lisp application may not provide a REPL. One would only need a REPL, when you want the user to enter programs at runtime. Let's say we have a Calendar app, why should it have a REPL?
+QuirkyImage
+•
+1h ago
+
+I didn’t say the application I said the language i.e toolset. If a language has an REPL it has the potential to be scriptable not necessarily interpreted but interpreted like. Plus REPLs are great for interactive development.
+u/koflerdavid avatar
+koflerdavid
+•
+3h ago
+• Edited 3h ago
+
+That should in principle be possible for any language. Compilation can be understood as an optimization of interpretation, and while some language features require implementing parts of what the interpreter would do, it should always be possible in principle.
+
+The line between compilation and interpretation is very blurry since pure tree-walking interpreters are very rare outside of domain specific languages or education. Most production-grade interpreters compile to an internal representation that is magnitudes more efficient to execute. JIT compilers compile this to native code and might also apply further optimizations.
+
+Regarding languages like Lisp/Scheme or JavaScript that have an eval function: in those cases there is no way around including an interpreter, else this feature would be completely impossible to implement.
+brucejbell
+•
+3h ago
+sard
+
+There is typically nothing stopping you from writing an interpreter for a language designed for compilation. E.g., there are a fair number of C interpreters available.
+FrancescoGuccini
+•
+4h ago
+
+Julia can be compiled to standalone executables in the upcoming version and has a REPL that is JIT-compiled but has an "interpreted" mode when not enough type information is available.
+therealdivs1210
+•
+46m ago
+
+Lisps are a good example of this.
+
+Common Lisp can be compiled to an executable via SBCL or interpreted using a different implementation.
+
+Scheme - several compilers and interpreters available.
+misternogetjoke
+•
+4h ago
+
+mypyc can compile python directly to C extensions
+QuirkyImage
+•
+4h ago
+
+would that C extensions be a compiled Python module?
+
+Or would it be a compiled library that can be called from any language with a c ffi?
+beephod_zabblebrox
+•
+3h ago
+
+c++! the constexpr part of it to be specific
+QuirkyImage
+•
+1h ago
+
+I did find a c++ interpreter from CERN called cling haven’t had time to look at it. However, I dont think c++ as a language blends itself well to an interpreter based environment, where as, an already interpreted language wouldn’t matter so much when compiled for basic applications. Of course, a language design specifically for both would be better.
+u/theangryepicbanana avatar
+theangryepicbanana
+•
+3h ago
+Star
+
+Dart and crystal immediately come to mind, but I also believe nim has this capability
+judisons
+•
+1h ago
+
+You want a compiled program (without embedded interpreters/hacks) with a REPL...
+
+Not at the same time, right? I mean, if your program is compiled, you can't interact with it in a REPL, and if you have REPL you have a compiler or interpreter embedded.
+QuirkyImage
+•
+1h ago
+
+> Not at the same time, right? 
+No not at the same time. I was thinking that a REPL has the potential to be interpreter like, that is , and work for scripting and interactive programming. If compiled its more for the speed and would be presented to the user as is a compiled executable. Its just about using the sam language in the two different ways.
+FrancescoGuccini
+•
+31m ago
+
+I think you want Julia
+drinkcoffeeandcode
+•
+1h ago
+
+u/Hostilian avatar
+Hostilian
+•
+57m ago
+
+Janet is an interesting language that covers those requirements. It has a really good guide online for free.
+beders
+•
+47m ago
+
+Clojure will fit the bill in multiple ways. Typically you use interactive programming during dev time. (Technically it will compile your s-expressions into bytecode but the experience is „scripting-like“ if you will)
+
+For actual scripting there’s Babashka, a fast Clojure interpreter that launches in microseconds. And lastly you can take any Clojure app and squeeze it through GraalVM to end up with a fast binary.
+Top 2%
+Rank by size
+Created May 28, 2008
+Public
+User flair
+u/Imaginary-Age5086 avatar
+Imaginary-Age5086
+Rules
+1
+Posts must be related to programming language design and implementation
+2
+Be civil and respectful
+3
+No low effort posts, memes, rants, etc
+Welcome
+
+This subreddit is dedicated to the theory, design and implementation of programming languages.
+
+Be nice to each other. Flame wars and rants are not welcomed. Please also put some effort into your post, this isn't Quora.
+
+This subreddit is not the right place to ask questions such as "What language should I use for X", "what language should I learn" and similar questions. Such questions should be posted in /r/AskProgramming or /r/LearnProgramming.
+Related subreddits
+
+    /r/Compilers
+    /r/compsci
+    /r/programming
+    /r/coding
+    /r/AskProgramming
+    /r/learnprogramming
+    /r/altprog
+
+Related online communities
+
+    /r/ProgrammingLanguages Discord server
+    ProgLangDesign.net - the home of Freenode's #proglangdesign
+    Lambda the Ultimate: Programming Languages
+    Programming languages tag on Computer Science Stack Exchange
+    Programming languages tag on Theoretical Computer Science Stack Exchange
+
+Moderators
+Message Mods
+
+    u/slavfox avatar u/slavfox
+    The resident Python guy
+    u/PaulBone avatar u/PaulBone
+    Plasma
+    u/yorickpeterse avatar u/yorickpeterse
+    Inko
+    u/Athas avatar u/Athas
+    Futhark
+    u/AutoModerator avatar u/AutoModerator
+    u/theangryepicbanana avatar u/theangryepicbanana
+    Star
+
+View all moderators
+Reddit Rules Privacy Policy User Agreement Reddit, Inc. © 2025. All rights reserved.
